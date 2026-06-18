@@ -78,32 +78,34 @@ example : (p → q) → (¬q → ¬p) :=
   fun h : p → q => (fun hnq => (fun hp => hnq (h hp)))
 
 
-open Classical
+section Classical
+  open Classical
 
-variable (p q r : Prop)
+  variable (p q r : Prop)
 
-example : (p → q ∨ r) → ((p → q) ∨ (p → r)) :=
-  fun h : p → q ∨ r => ((em p).elim (fun hp => (h hp).elim (fun hq => Or.inl (fun _ => hq)) (fun hr => Or.inr (fun _ => hr)))
-    (fun hnp => Or.inl (fun hp => absurd hp hnp)))
+  example : (p → q ∨ r) → ((p → q) ∨ (p → r)) :=
+    fun h : p → q ∨ r => ((em p).elim (fun hp => (h hp).elim (fun hq => Or.inl (fun _ => hq)) (fun hr => Or.inr (fun _ => hr)))
+      (fun hnp => Or.inl (fun hp => absurd hp hnp)))
 
-example : ¬(p ∧ q) → ¬p ∨ ¬q :=
-  fun h : ¬(p ∧ q) => ((em p).elim (fun hp => (em q).elim (fun hq => absurd ⟨hp, hq⟩ h) (fun hnq => Or.inr hnq))
-    (fun hnp => Or.inl hnp))
+  example : ¬(p ∧ q) → ¬p ∨ ¬q :=
+    fun h : ¬(p ∧ q) => ((em p).elim (fun hp => (em q).elim (fun hq => absurd ⟨hp, hq⟩ h) (fun hnq => Or.inr hnq))
+      (fun hnp => Or.inl hnp))
 
-example : ¬(p → q) → p ∧ ¬q :=
-  fun h : ¬(p → q) => ((em p).elim (fun hp => (em q).elim (fun hq => False.elim (h (fun _ => hq))) (fun hnq => ⟨hp, hnq⟩))
-    (fun hnp => False.elim (h (fun hp => absurd hp hnp))))
+  example : ¬(p → q) → p ∧ ¬q :=
+    fun h : ¬(p → q) => ((em p).elim (fun hp => (em q).elim (fun hq => False.elim (h (fun _ => hq))) (fun hnq => ⟨hp, hnq⟩))
+      (fun hnp => False.elim (h (fun hp => absurd hp hnp))))
 
-example : (p → q) → (¬p ∨ q) :=
-  fun h : p → q => ((em p).elim (fun hp => Or.inr (h hp)) (fun hnp => Or.inl hnp))
+  example : (p → q) → (¬p ∨ q) :=
+    fun h : p → q => ((em p).elim (fun hp => Or.inr (h hp)) (fun hnp => Or.inl hnp))
 
-example : (¬q → ¬p) → (p → q) :=
-  fun h : ¬q → ¬p => (fun hp => (em q).elim (fun hq => hq) (fun hnq => absurd hp (h hnq)))
+  example : (¬q → ¬p) → (p → q) :=
+    fun h : ¬q → ¬p => (fun hp => (em q).elim (fun hq => hq) (fun hnq => absurd hp (h hnq)))
 
-example : p ∨ ¬p := em p
+  example : p ∨ ¬p := em p
 
-example : (((p → q) → p) → p) :=
-  fun h : (p → q) → p => (em p).elim (fun hp => hp) (fun hnp => h (fun hp => absurd hp hnp))
+  example : (((p → q) → p) → p) :=
+    fun h : (p → q) → p => (em p).elim (fun hp => hp) (fun hnp => h (fun hp => absurd hp hnp))
+end Classical
 
 
 example : ¬(p ↔ ¬p) :=
