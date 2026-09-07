@@ -135,3 +135,61 @@ end List
 end Hidden
 
 -- 3
+
+inductive Term where
+  | const (n : Nat) : Term
+  | var (n : Nat) : Term
+  | plus (s t : Term) : Term
+  | times (s t : Term) : Term
+
+namespace Term
+
+def evaluate (vals : Nat -> Nat) (t : Term) : Nat :=
+  match t with
+  | const n => n
+  | var n => vals n
+  | plus s t => evaluate vals s + evaluate vals t
+  | times s t => evaluate vals s * evaluate vals t
+
+end Term
+
+-- 4
+
+inductive Formula where
+  | const (b : Bool) : Formula
+  | var (n : Nat) : Formula
+  | and (x y : Formula) : Formula
+  | or (x y : Formula) : Formula
+  | not (x : Formula) : Formula
+  | implies (x y : Formula) : Formula
+
+namespace Formula
+
+def evaluate (vals : Nat -> Bool) (x : Formula) : Bool :=
+  match x with
+  | const b => b
+  | var n => vals n
+  | and x y => evaluate vals x ∧ evaluate vals y
+  | or x y => evaluate vals x ∨ evaluate vals y
+  | not x => ¬(evaluate vals x)
+  | implies x y => evaluate vals x → evaluate vals y
+
+def measure_complexity (x : Formula) : Nat :=
+  match x with
+  | const _ => 1
+  | var _ => 1
+  | and x y => 1 + measure_complexity x + measure_complexity y
+  | or x y => 1 + measure_complexity x + measure_complexity y
+  | not x => 1 + measure_complexity x
+  | implies x y => 1 + measure_complexity x + measure_complexity y
+
+def substitute (from_var : Nat) (to_formula : Formula) (x : Formula) : Formula :=
+  match x with
+  | const _ => x
+  | var n => if n = from_var then to_formula else x
+  | and x y => and (substitute from_var to_formula x) (substitute from_var to_formula y)
+  | or x y => or (substitute from_var to_formula x) (substitute from_var to_formula y)
+  | not x => not (substitute from_var to_formula x)
+  | implies x y => implies (substitute from_var to_formula x) (substitute from_var to_formula y)
+
+end Formula
