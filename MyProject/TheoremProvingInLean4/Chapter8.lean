@@ -1,3 +1,5 @@
+import Mathlib.Tactic
+
 namespace Hidden
 
 -- 1
@@ -81,3 +83,17 @@ noncomputable def WellFounded_fix {α : Sort u} {C : α → Sort v} {r : α → 
   let intro := fun (x : α) (_ : ∀ (y : α), r y x → Acc r y)
     (f : (y : α) → (a : r y x) → C y) => F x f
   Acc.rec intro x_acc
+
+-- 4
+
+inductive Vect (α : Type u) : Nat → Type u
+  | nil : Vect α 0
+  | cons : α → {n : Nat} → Vect α n → Vect α (n + 1)
+
+def appendAux : Vect α n1 → Vect α n2 → n1 + n2 = m → Vect α m
+  | Vect.nil, v2, h => ((Nat.zero_add n2).symm.trans h) ▸ v2
+  | Vect.cons a v1', v2, h => ((Nat.succ_add _ n2).symm.trans h) ▸
+      Vect.cons a (appendAux v1' v2 rfl)
+
+def append (v1 : Vect α n1) (v2 : Vect α n2) : Vect α (n1 + n2) :=
+  appendAux v1 v2 rfl
