@@ -87,7 +87,7 @@ noncomputable def WellFounded_fix {α : Sort u} {C : α → Sort v} {r : α → 
 -- 4
 
 inductive Vect (α : Type u) : Nat → Type u
-  | nil : Vect α 0
+  | nil  : Vect α 0
   | cons : α → {n : Nat} → Vect α n → Vect α (n + 1)
 
 def appendAux : Vect α n1 → Vect α n2 → n1 + n2 = m → Vect α m
@@ -97,3 +97,55 @@ def appendAux : Vect α n1 → Vect α n2 → n1 + n2 = m → Vect α m
 
 def append (v1 : Vect α n1) (v2 : Vect α n2) : Vect α (n1 + n2) :=
   appendAux v1 v2 rfl
+
+-- 5
+
+inductive Expr where
+  | const : Nat → Expr
+  | var : Nat → Expr
+  | plus : Expr → Expr → Expr
+  | times : Expr → Expr → Expr
+deriving Repr
+
+open Expr
+
+def sampleExpr : Expr :=
+  plus (times (var 0) (const 7)) (times (const 2) (var 1))
+
+def eval (v : Nat → Nat) : Expr → Nat
+  | const n     => n
+  | var n       => v n
+  | plus e₁ e₂  => eval v e₁ + eval v e₂
+  | times e₁ e₂ => eval v e₁ * eval v e₂
+
+def sampleVal : Nat → Nat
+  | 0 => 5
+  | 1 => 6
+  | _ => 0
+
+-- Try it out. You should get 47 here.
+#eval eval sampleVal sampleExpr
+
+def simpConst : Expr → Expr
+  | plus (const n₁) (const n₂)  => const (n₁ + n₂)
+  | times (const n₁) (const n₂) => const (n₁ * n₂)
+  | e                           => e
+
+def fuse : Expr → Expr
+  | plus e₁ e₂ => simpConst (plus (fuse e₁) (fuse e₂))
+  | times e₁ e₂ => simpConst (times (fuse e₁) (fuse e₂))
+  | e => e
+
+theorem simpConst_eq (v : Nat → Nat)
+        : ∀ e : Expr, eval v (simpConst e) = eval v e := by
+  intro e
+  unfold simpConst
+  split <;> simp [eval]
+
+theorem fuse_eq (v : Nat → Nat)
+        : ∀ e : Expr, eval v (fuse e) = eval v e := by
+  intro e
+  fun_induction fuse with
+  | case1 e₁ e₂ ih₁ ih₂ => simp [simpConst_eq, eval, ih₁, ih₂]
+  | case2 e₁ e₂ ih₁ ih₂ => simp [simpConst_eq, eval, ih₁, ih₂]
+  | case3 e => rfl
